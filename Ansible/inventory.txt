@@ -1,0 +1,9 @@
+
+[dev_servers]
+dev_app ansible_host=192.168.0.33 
+
+[stage_servers]
+stage_app ansible_host=192.168.0.34 
+
+[prod_servers]
+prod_app ansible_host=192.168.0.35

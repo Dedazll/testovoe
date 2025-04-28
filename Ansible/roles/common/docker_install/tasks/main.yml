@@ -1,0 +1,47 @@
+---
+
+- name: Query packages installed in the distribution
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Set version for Docker
+  ansible.builtin.set_fact:
+    docker_version: "{{ docker_version}}~{{ ansible_facts['distribution'] | lower }}.{{ ansible_facts['distribution_version'] }}~{{ ansible_facts['distribution_release'] }}"
+
+- name: Install packages for docker
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ packages_for_docker }}"
+
+- name: Create directory for Docker keyring
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: "{{ docker_url }}/{{ ansible_facts['distribution'] | lower }}/gpg"
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Add repo for Docker
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] {{ docker_url }}/{{ ansible_facts['distribution'] | lower }} {{ ansible_facts['distribution_release'] }} stable"
+    state: present
+    update_cache: yes
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ docker_packages }}"
+
+- name: Enabled Docker for systemd
+  ansible.builtin.systemd:
+    name: docker
+    enabled: yes
+    state: started

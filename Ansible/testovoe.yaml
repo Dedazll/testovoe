@@ -1,0 +1,15 @@
+---
+- name: Testovoe 
+  hosts: all
+  become: yes
+
+  tasks:
+
+    - include_vars: roles/common/packages_install/defaults/main.yml
+    - include_vars: roles/common/docker_install/defaults/main.yml
+    - include_vars: roles/common/users_add/defaults/main.yml
+
+    - include_tasks: roles/common/packages_install/tasks/main.yml
+    - include_tasks: roles/common/docker_install/tasks/main.yml
+    - include_tasks: roles/common/users_add/tasks/main.yml
+
