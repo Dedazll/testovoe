@@ -4,7 +4,7 @@
 
 ENV_FILE="/opt/docker_compose_service/.env"
 
-DB_HOST="192.168.0.69"
+DB_HOST="locahost"
 
 BACKUP_DIR="/opt/backup_db"
 BACKUP_FILE="$BACKUP_DIR/pg_dump_$(date +%Y%m%d_%H%M%S).sql"
