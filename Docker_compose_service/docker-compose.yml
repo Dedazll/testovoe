@@ -1,0 +1,94 @@
+version: '3'
+
+
+services:
+  react-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:?err}
+      - REACT_APP_TEST_VAR=${REACT_APP_TEST_VAR:?err}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    depends_on:
+      - postgres
+    networks:
+      - test-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    depends_on:
+      - react-app
+    networks:
+      - test-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:?err}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?err}
+      POSTGRES_DB: ${DB_NAME:?err}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:?err} -d ${DB_NAME:?err}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+
+
+
+# Команда запуска сервиса:
+# docker-compose --compatibility --env-file .env up --detach --build
+
+# Просмотр логов
+# docker-compose logs
+# docker-compose logs (название конейтера)
+
+# Команда подключения к postgresql
+# docker-compose exec postgres psql -U ${DB_USER} -d ${DB_NAME}
+# psql -h (dns_name or ip) -p 5432 -U ${DB_USER} -d ${DB_NAME}
